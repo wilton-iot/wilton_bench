@@ -14,19 +14,23 @@
 
 cmake_minimum_required ( VERSION 2.8.12 )
 
-add_subdirectory ( samples/golang )
+# project
+project ( bench_wilton_c_server CXX )
 
-add_subdirectory ( samples/wilton_c )
+add_executable ( ${PROJECT_NAME} server.c )
 
-# run wilton_js from wilton/build dir:
-# ./bin/wilton_cli ../bench/samples/wilton_js/server.js -m ../js -s app
+target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE
+        ${WILTON_DIR}/core/include
+        ${WILTON_DIR}/modules/wilton_logging/include
+        ${WILTON_DIR}/modules/wilton_signal/include
+        ${WILTON_DIR}/modules/wilton_server/include )
 
-# express module is required for node example:
-# npm install express --save
-# npm install body-parser --save
-# nodejs ../bench/samples/node/server.js
-
-# libluajit-5.1-dev is required to build wrk
-add_subdirectory ( tools )
-
-
+target_link_libraries ( ${PROJECT_NAME} PRIVATE
+        jansson
+        wilton_core
+        wilton_crypto
+        wilton_loader
+        wilton_logging
+        wilton_server
+        wilton_signal
+        wilton_zip )

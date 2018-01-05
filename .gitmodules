@@ -1,0 +1,6 @@
+[submodule "tools/wrk"]
+	path = tools/wrk
+	url = https://github.com/wilton-iot/wrk.git
+[submodule "tools/FlameGraph"]
+	path = tools/FlameGraph
+	url = https://github.com/wilton-iot/FlameGraph.git

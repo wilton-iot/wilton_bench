@@ -14,19 +14,9 @@
 
 cmake_minimum_required ( VERSION 2.8.12 )
 
-add_subdirectory ( samples/golang )
-
-add_subdirectory ( samples/wilton_c )
-
-# run wilton_js from wilton/build dir:
-# ./bin/wilton_cli ../bench/samples/wilton_js/server.js -m ../js -s app
-
-# express module is required for node example:
-# npm install express --save
-# npm install body-parser --save
-# nodejs ../bench/samples/node/server.js
-
-# libluajit-5.1-dev is required to build wrk
-add_subdirectory ( tools )
-
-
+message ( STATUS "Compiling golang sample server ..." )
+execute_process ( COMMAND go build server.go
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} )
+execute_process ( COMMAND mv server ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bench_golang_server
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} )
+message ( STATUS "Compiling golang sample server - done" )
