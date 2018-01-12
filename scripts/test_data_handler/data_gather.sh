@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 
 # help
 if [[ "$1" = "--help" ]]
