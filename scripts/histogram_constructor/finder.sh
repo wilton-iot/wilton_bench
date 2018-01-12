@@ -1,6 +1,5 @@
-# Нужно найти файлы
-
-# data_files=$(find .. -name *$1.png.dat)
+#!/bin/bash
+set -e
 
 usage="Usage: $0 specifick_word\n \t use 'latency' or 'requests'"
 
@@ -9,19 +8,21 @@ if [[ "$1" = "" ]]; then
 	exit 0
 fi
 
-finded_files="finded_files.txt"
-copy_cmds="copy_cmd.txt"
+sc_cat=$(dirname "$0")
+
+
+finded_files="$sc_cat/finded_files.txt"
+copy_cmds="$sc_cat/copy_cmd.txt"
 
 rm -f $finded_files
 rm -f $copy_cmds
 
 # relative path to find tests data
-find_path="../../tests_data/"
+find_path="$sc_cat/../../tests_data/"
 
 find $find_path -name *$1.png.dat >> $finded_files
 
-python copy_finded.py $finded_files $copy_cmds
-
+python $sc_cat/copy_finded.py $finded_files $copy_cmds $sc_cat
 
 cat $copy_cmds | while read cmd
 do

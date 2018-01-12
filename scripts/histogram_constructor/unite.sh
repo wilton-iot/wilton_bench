@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 usage="Usage: $0 specifick_word\n \t use 'latency' or 'requests'"
 
@@ -7,17 +8,17 @@ if [[ "$1" = "" ]]; then
 	exit 0
 fi
 
-# Нужно найти файлы
+sc_cat=$(dirname "$0")
 
-rm -f *.dat.pc
-dat_files=$(ls *.png.dat)
+rm -f $sc_cat/*.dat.pc
+dat_files=$(ls $sc_cat/*.png.dat)
 
 header_line="test"
 
-tmp_file="tmp.txt"
-mutual_file="mutual.txt"
-names_file="names.txt"
-file_names_file="file_names.txt"
+tmp_file="$sc_cat/tmp.txt"
+mutual_file="$sc_cat/mutual.txt"
+names_file="$sc_cat/names.txt"
+file_names_file="$sc_cat/file_names.txt"
 
 rm -f $tmp_file
 rm -f $tmp_file.pc
@@ -32,7 +33,7 @@ plot_line="plot '$mutual_file' using 2:xtic(1) ti col"
 
 counter=1
 for i in $dat_files; do
-	### Генерация команды для gnuplot
+	### Generate command for gnuplot
 	counter=$(( counter+1 ))
 	if [[ "$counter" != "2" ]]; then
 		plot_line=$( echo "$plot_line, '' u $counter ti col " )
@@ -40,8 +41,11 @@ for i in $dat_files; do
 	########
 
 	name=$(echo $i | sed "s/\.$1\.png\.dat//")
+	name=$(echo $name | tr / "\n"|tail -1|head -1)
 	echo "$name" >> $names_file
+	echo "$name"
 	echo "$i" >> $file_names_file
+	echo "$i"
 	rm -f $i.pc
 	sed "s/Server/$name/" $i >> $i.pc
 	header_line=$(echo "$header_line  $name")
@@ -53,6 +57,7 @@ for i in $dat_files; do
 done
 
 
+
 sort -u $tmp_file >> $tmp_file.pc
 sort -u $names_file >> $names_file.pc
 sort -u $file_names_file >> $file_names_file.pc
@@ -60,6 +65,6 @@ sort -u $file_names_file >> $file_names_file.pc
 
 echo $plot_line 
 
-python "unite.py" $1 "$plot_line"
+python $sc_cat/unite.py $1 "$plot_line" $sc_cat
 
-gnuplot plot.plt
+gnuplot $sc_cat/plot.plt

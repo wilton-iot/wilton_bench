@@ -11,33 +11,35 @@ tests_dict = {}
 # result_string = "test"
 work_word = sys.argv[1]
 plot_line = sys.argv[2]
+wrk_cat = sys.argv[3]
 
 # print "plot line:          ", plot_line
 
-names = open('./names.txt.pc')
+names = open(wrk_cat + '/names.txt.pc')
 for line in names.readlines():
 	name = line.replace('\n','')
 	names_dict[name] = "-";
 
-tests = open('./tmp.txt.pc')
+tests = open(wrk_cat + '/tmp.txt.pc')
 for line in tests.readlines():
 	tmp_dict = copy.deepcopy(names_dict)
 	tests_dict[line.replace('\n','')] = tmp_dict
 
 # print tests_dict, "\n===================\n"
 
-files = open('./file_names.txt.pc')
+files = open(wrk_cat + '/file_names.txt.pc')
 for line in files.readlines():
-	path = "./" + line.replace('\n','')
+	path = line.replace('\n','')
 	dat_file = open(path)
 	for dat_line in dat_file.readlines():
 		if ((dat_line.find("GET") != -1) or (dat_line.find("POST") != -1)):
 			values=dat_line.split(" ");
 			test_str=values[0]
 			repl = "." + work_word + ".png.dat";
-			# print(repl)
 			name_str=line.replace(repl,'').replace('\n','')
-			tests_dict[test_str][name_str] = values[1].replace('\n','')
+			name_list = name_str.split("/")
+			file_name = name_list.pop()
+			tests_dict[test_str][file_name] = values[1].replace('\n','')
 			pass
 		pass
 	pass
@@ -59,12 +61,12 @@ for line in tests_dict:
 	pass
 
 # print result_string
-mutual = open('./mutual.txt', 'w')
+mutual = open(wrk_cat + '/mutual.txt', 'w')
 mutual.write(result_string)
 
 
 
-plot = open('./plot.plt', 'w')
+plot = open(wrk_cat + '/plot.plt', 'w')
 
 plot_config = "set term png size 1600, 900 \n\
 set output \"%s.png\" \n\
@@ -79,7 +81,7 @@ set xtics   () \n\
 set title \"\"  \n\
 set ytics  norangelimit font \",8\" \n\
 %s \n\
-" % (work_word, plot_line)
+" % (wrk_cat + "/" + work_word, plot_line)
 
 plot.write(plot_config)
 
