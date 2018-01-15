@@ -38,7 +38,6 @@ function error_exit {
   exit 1
 }
 
-
 ###################################################
 
 
@@ -55,8 +54,17 @@ wrk_test_data_file=$7
 rm -rf $store_directory
 mkdir -p $store_directory
 
-# Run the server in the background.
-$1$server_name $3 & #|| error_exit "can't start server" & 
+# Perf keys:
+# -a, --all-cpus   -   System-wide collection from all CPUs.
+# -g               -   Enables call-graph (stack chain/backtrace) recording.
+# -q               -   Quiet mode, Don’t print any message
+# -F 99            -   Profile at this frequency.
+#
+perf_out_file="perf.data"
+perf_cmd="perf record -F 99 -g -a --output=$store_directory/$perf_out_file -- "
+
+# Run the server in the background. Under perf
+$perf_cmd $1$server_name $3 & #|| error_exit "can't start server" & 
 
 sleep 1
 
@@ -105,7 +113,7 @@ vmstat 1 >> $store_directory/$vm_file & #|| error_exit "can't start vmstat" &
 mpstat 1 >> $store_directory/$mp_file & #|| error_exit "can't start mpstat" &
 
 # Run the diagnostics of input / output
-iostat -h -y -d 1 >> $store_directory/$io_file & #|| error_exit "can't start iostat" &
+iostat -h -d 1 >> $store_directory/$io_file & #|| error_exit "can't start iostat" &
 
 # Running the memory diagnostics for free
 free -m -s 1 >> $store_directory/$free_file & #|| error_exit "can't start free" &
@@ -218,5 +226,13 @@ sed -n 's/Run/Run/p; s/Requests\/sec/Requests\/sec/p' $store_directory/$wrk_file
 echo "End" >> $store_directory/$wrk_file.latency
 echo "End" >> $store_directory/$wrk_file.requests
 
+
+## perf handler
+flame_result_name="flame.svg"
+flame_graph_path="$wrk_path/../FlameGraph" #"../../../utils/FlameGraph"
+
+echo "perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name"
+sleep 2 # wait for perf saves file
+perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name
 
 echo "data ready for processing by data_handler.sh"
