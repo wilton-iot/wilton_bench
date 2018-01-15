@@ -1,9 +1,9 @@
 #!/bin/bash
-set -e
+# set -e
 
 # Script starts specified server, monitoring utils and load tests(by wrk)
 
-usage="Usage: $0 [-test] -- server_directory server_name args store_directory server_url wrk_parameters_file\n
+usage="Usage: $0 [-test] -- server_directory server_name args store_directory wrk_directory server_url wrk_parameters_file\n
 \n
 -test - wait input  after server start try. If any problems - enter q to quit script."
 
@@ -20,40 +20,73 @@ esac
 shift
 done
 
+###################################################
+
+gl_err_state=0
+
+function error_exit {
+  echo "$(basename $0): ${1:-"Unknown Error"}" 1>&2
+  echo "jobs: '$(jobs -p)'"
+  gl_err_state=$?
+  count=1
+  jobs -p | while read tmp_pid
+  do
+    echo "pid[$count]: $tmp_pid"
+    count=$(( $count + 1 ))
+    kill $tmp_pid
+  done
+  exit 1
+}
+
+
+###################################################
+
 
 echo "========================="
 
+# setup path vars
 server_name=$2
 store_directory=$4
+
+wrk_path=$5
+server_url=$6
+wrk_test_data_file=$7 
 
 rm -rf $store_directory
 mkdir -p $store_directory
 
 # Run the server in the background.
-$1$server_name $3 & 
+$1$server_name $3 & #|| error_exit "can't start server" & 
+
+sleep 1
+
+if [[ "$(pgrep $server_name)" = "" ]]; then
+  error_exit "can't start server 124"
+fi
 
 echo "$1"
 echo "$2"
 echo "$3"
 echo "$4"
 echo "$5"
+echo "$6"
 
 if [[ "$test_mode" = "ON" ]] 
 then
-	echo "enter q to exit"
-	read doing #read into the variable $doing from the standard input
-	if [[ "$doing" = 'q' ]] 
-	then
-		echo "exit"
-		count=1
-		jobs -p | while read tmp_pid
-		do
-		echo "pid[$count]: $tmp_pid"
-		count=$(( $count + 1 ))
-		kill $tmp_pid
-		done
-		exit 0
-	fi
+  echo "enter q to exit"
+  read doing #read into the variable $doing from the standard input
+  if [[ "$doing" = 'q' ]] 
+  then
+    echo "exit"
+    count=1
+    jobs -p | while read tmp_pid
+    do
+    echo "pid[$count]: $tmp_pid"
+    count=$(( $count + 1 ))
+    kill $tmp_pid
+    done
+    exit 0
+  fi
 fi
 
 
@@ -66,20 +99,36 @@ top_file="topstat.txt"
 
 
 # Running the cpu diagnostics
-vmstat -w 1 >> $store_directory/$vm_file &
+vmstat 1 >> $store_directory/$vm_file & #|| error_exit "can't start vmstat" &
 
 # Running the memory diagnostics
-mpstat 1 >> $store_directory/$mp_file &
+mpstat 1 >> $store_directory/$mp_file & #|| error_exit "can't start mpstat" &
 
 # Run the diagnostics of input / output
-iostat -h -y -d 1 >> $store_directory/$io_file &
+iostat -h -y -d 1 >> $store_directory/$io_file & #|| error_exit "can't start iostat" &
 
 # Running the memory diagnostics for free
-free -m -s 1 >> $store_directory/$free_file &
+free -m -s 1 >> $store_directory/$free_file & #|| error_exit "can't start free" &
 
 current_user=$(whoami)
 # Running the memory and cpu diagnostics by 'top'
-top -b -u $current_user -d 1 >> $store_directory/$top_file &
+top -b -u $current_user -d 1 >> $store_directory/$top_file & #|| error_exit "can't start top" &
+
+if [[ "$(pgrep vmstat)" = "" ]]; then
+  error_exit "can't start vmstat [main script]"
+fi
+if [[ "$(pgrep mpstat)" = "" ]]; then
+  error_exit "can't start mpstat [main script]"
+fi
+if [[ "$(pgrep iostat)" = "" ]]; then
+  error_exit "can't start iostat [main script]"
+fi
+if [[ "$(pgrep free)" = "" ]]; then
+  error_exit "can't start free [main script]"
+fi
+if [[ "$(pgrep top)" = "" ]]; then
+  error_exit "can't start top [main script]"
+fi
 
 jobs -l
 
@@ -89,43 +138,49 @@ echo "========================="
 echo "Let's do some LOAD"
 # Run the load
 
-wrk_path="$(dirname "$0")/../../tools/wrk" # relative pos in bench catalog
-server_url=$5
-wrk_test_data_file=$6 
-
 
 cat $wrk_test_data_file | tail -n +2 | while read threads delim connections delim seconds delim  query
 do
-	echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$wrk_file
+  echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$wrk_file
 
-	echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$vm_file
-	echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$mp_file
-	echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$io_file
-	echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$free_file
-	echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$top_file
+  echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$vm_file
+  echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$mp_file
+  echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$io_file
+  echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$free_file
+  echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$top_file
 
-	echo "Run with params: threads=$threads, connections=$connections, seconds=$seconds, query=$query"
+  echo "Run with params: threads=$threads, connections=$connections, seconds=$seconds, query=$query"
 
-	if [[ "$query" = "GET" ]]
-	then
-		$wrk_path/wrk -t"$threads" -c"$connections" -d"$seconds"s $server_url >> $store_directory/$wrk_file
-	else
-		$wrk_path/wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_path/scripts/post.lua" $server_url >> $store_directory/$wrk_file
-	fi
-	echo "=========================" >> $store_directory/$wrk_file
-	echo "" >> $store_directory/$wrk_file
+  if [[ "$query" = "GET" ]]
+  then
+    $wrk_path/wrk -t"$threads" -c"$connections" -d"$seconds"s $server_url >> $store_directory/$wrk_file || error_exit "can't start wrk"
+  else
+    $wrk_path/wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_path/scripts/post.lua" $server_url >> $store_directory/$wrk_file || error_exit "can't start wrk"
+  fi
 
-	echo "End Run" >> $store_directory/$vm_file
-	echo "End Run" >> $store_directory/$mp_file
-	echo "End Run" >> $store_directory/$io_file
-	echo "End Run" >> $store_directory/$free_file
-	echo "End Run" >> $store_directory/$top_file
+  echo "error state: " $?
 
-	sleep 10s # delay for wrk to free memory
+  if [[ ! "$(pgrep wrk)" = "" ]]; then
+    error_exit "can't start wrk [main script]"
+  fi
+
+  echo "=========================" >> $store_directory/$wrk_file
+  echo "" >> $store_directory/$wrk_file
+
+  echo "End Run" >> $store_directory/$vm_file
+  echo "End Run" >> $store_directory/$mp_file
+  echo "End Run" >> $store_directory/$io_file
+  echo "End Run" >> $store_directory/$free_file
+  echo "End Run" >> $store_directory/$top_file
+
+  sleep 10s # delay for wrk to free memory
 done
 
 
+
 echo "========================="
+echo "error state: " $?
+echo "gl error state: " $gl_err_state
 count=1
 jobs -p | while read tmp_pid
 do
