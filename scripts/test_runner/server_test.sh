@@ -49,11 +49,24 @@ store_directory=$4
 
 wrk_path=$5
 server_url=$6
-wrk_test_data_file=$7 
+wrk_test_data_file=$7
 
 rm -rf $store_directory
 mkdir -p $store_directory
 
+
+# Run the server in the background. Under perf
+$1$server_name $3 & #|| error_exit "can't start server" & 
+# save server pid
+echo $! > server.pid
+
+# Run VmRSS handler for server in background
+rss_file="vmrss_stat.txt"
+$(dirname "$0")/RSS_gatherer.sh server.pid $store_directory/$rss_file &
+
+sleep 1
+
+# run perf connection to server -p. Also in background
 # Perf keys:
 # -a, --all-cpus   -   System-wide collection from all CPUs.
 # -g               -   Enables call-graph (stack chain/backtrace) recording.
@@ -61,10 +74,8 @@ mkdir -p $store_directory
 # -F 99            -   Profile at this frequency.
 #
 perf_out_file="perf.data"
-perf_cmd="perf record -F 99 -g -a --output=$store_directory/$perf_out_file -- "
+perf record -F 99 -g -a --output=$store_directory/$perf_out_file -p $(cat server.pid) || error_exit "can't connect perf to server" &
 
-# Run the server in the background. Under perf
-$perf_cmd $1$server_name $3 & #|| error_exit "can't start server" & 
 
 sleep 1
 
@@ -93,6 +104,7 @@ then
     count=$(( $count + 1 ))
     kill $tmp_pid
     done
+    sleep 2
     exit 0
   fi
 fi
@@ -156,6 +168,7 @@ do
   echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$io_file
   echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$free_file
   echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$top_file
+  echo "Run with params: $threads, $connections, $seconds, $query" >> $store_directory/$rss_file
 
   echo "Run with params: threads=$threads, connections=$connections, seconds=$seconds, query=$query"
 
@@ -180,6 +193,7 @@ do
   echo "End Run" >> $store_directory/$io_file
   echo "End Run" >> $store_directory/$free_file
   echo "End Run" >> $store_directory/$top_file
+  echo "End Run" >> $store_directory/$rss_file
 
   sleep 10s # delay for wrk to free memory
 done
@@ -236,3 +250,5 @@ sleep 2 # wait for perf saves file
 perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name
 
 echo "data ready for processing by data_handler.sh"
+
+rm server.pid
