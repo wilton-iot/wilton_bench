@@ -246,6 +246,7 @@ flame_result_name="flame.svg"
 flame_graph_path="$wrk_path/../FlameGraph" #"../../../utils/FlameGraph"
 
 echo "perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name"
+pkill perf
 sleep 2 # wait for perf saves file
 perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name
 
