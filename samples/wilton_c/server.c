@@ -85,7 +85,7 @@ void json_handler(void* ctx, wilton_Request* req) {
     wilton_free(data);
 }
 
-int main() {
+int main(int argc, char const *argv[]) {
     char* err;
     init_logging();
 
@@ -106,13 +106,26 @@ int main() {
 
     // server
     puts("Starting wilton_c server ...");
-    char* server_conf = "{\
-            \"numberOfThreads\": 2,\
+
+    char* server_conf_format = "{\
+            \"numberOfThreads\": %s,\
             \"tcpPort\": 8080,\
             \"ipAddress\": \"127.0.0.1\"\
     }";
+
+    char* threads_number = NULL;
+    const int first_arg = 1;
+    if (first_arg < argc) {
+      threads_number = (char* ) argv[first_arg];
+    } else {
+      threads_number = "2"; 
+    }
+
+    char server_conf[512];
+    int server_conf_len = sprintf(server_conf, server_conf_format, threads_number);
+
     wilton_Server* server;
-    err = wilton_Server_create(&server, server_conf, (int) strlen(server_conf), paths, paths_size);
+    err = wilton_Server_create(&server, server_conf, server_conf_len, paths, paths_size);
     check_err(err);
 
     // signals
