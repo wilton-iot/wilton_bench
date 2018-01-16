@@ -97,7 +97,7 @@ done
 lines=$(ls $work_dat_path | sed 's/\t/\n/g; s/  /\n/g')
 
 echo "set term png size 1600, 900" >> $work_dat_path/plot.pl
-echo "set output \"./$output_file\"" >> $work_dat_path/plot.pl
+echo "set output \"$output_file\"" >> $work_dat_path/plot.pl
 
 # two variants of work
 # histogramm or lines
@@ -126,7 +126,7 @@ else
   echo "plot \\" >> $work_dat_path/plot.pl
   echo "$lines" | while read line
   do
-    echo "\"./$work_dat_path/$line\" using 1:2 with lines title '$line', \\" >> $work_dat_path/plot.pl
+    echo "\"$work_dat_path/$line\" using 1:2 with lines title '$line', \\" >> $work_dat_path/plot.pl
   done  
 fi
 
