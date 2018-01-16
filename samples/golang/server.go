@@ -19,8 +19,8 @@ package main
 import (
     "encoding/json"
     "io"
-    "io/ioutil"
     "net/http"
+    "runtime"
 )
 
 func hello_handler(w http.ResponseWriter, r *http.Request) {
@@ -29,16 +29,13 @@ func hello_handler(w http.ResponseWriter, r *http.Request) {
 
 func json_handler(w http.ResponseWriter, r *http.Request) {
 
-    // loading full request into memory to match C and JS samples
-    body, err := ioutil.ReadAll(r.Body)
-    if err != nil {
-        panic(err)
-    }
+    decoder := json.NewDecoder(r.Body)
     var obj map[string]interface{}
-    err = json.Unmarshal(body, &obj)
+    err := decoder.Decode(&obj)
     if err != nil {
         panic(err)
     }
+    defer r.Body.Close()
 
     obj["serverHello"] = "hello";
 
@@ -51,6 +48,7 @@ func json_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    runtime.GOMAXPROCS(8)
     http.HandleFunc("/app/views/hello", hello_handler)
     http.HandleFunc("/app/views/json", json_handler)
     println("Starting golang server ...");

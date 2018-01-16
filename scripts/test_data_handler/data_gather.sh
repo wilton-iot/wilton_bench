@@ -96,7 +96,7 @@ done
 # find all data files and build gnuplot command
 lines=$(ls $work_dat_path | sed 's/\t/\n/g; s/  /\n/g')
 
-echo "set term png size 1600, 900" >> $work_dat_path/plot.pl
+echo "set term png size 640, 480" >> $work_dat_path/plot.pl
 echo "set output \"$output_file\"" >> $work_dat_path/plot.pl
 
 # two variants of work

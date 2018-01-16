@@ -29,8 +29,8 @@ define([
                 tcpPort: 8080,
                 numberOfThreads: 2,
                 views: [
-                    "wilton_js/views/hello",
-                    "wilton_js/views/json"
+                    "app/views/hello",
+                    "app/views/json"
                 ]
             });
             misc.waitForSignal();

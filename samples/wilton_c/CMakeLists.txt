@@ -15,7 +15,7 @@
 cmake_minimum_required ( VERSION 2.8.12 )
 
 # project
-project ( bench_wilton_c_server CXX )
+project ( bench_wilton_c CXX )
 
 add_executable ( ${PROJECT_NAME} server.c )
 

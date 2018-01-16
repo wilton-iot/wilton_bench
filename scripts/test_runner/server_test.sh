@@ -48,15 +48,14 @@ server_name=$2
 store_directory=$4
 
 wrk_path=$5
-server_url=$6
-wrk_test_data_file=$7
+wrk_test_data_file=$6
 
-rm -rf $store_directory
+#rm -rf $store_directory
 mkdir -p $store_directory
 
 
 # Run the server in the background. Under perf
-$1$server_name $3 & #|| error_exit "can't start server" & 
+$1/$server_name $3 &
 # save server pid
 echo $! > server.pid
 
@@ -73,8 +72,8 @@ sleep 1
 # -q               -   Quiet mode, Don’t print any message
 # -F 99            -   Profile at this frequency.
 #
-perf_out_file="perf.data"
-perf record -F 99 -g -a --output=$store_directory/$perf_out_file -p $(cat server.pid) || error_exit "can't connect perf to server" &
+#perf_out_file="perf.data"
+#perf record -F 99 -g -a --output=$store_directory/$perf_out_file -p $(cat server.pid) || error_exit "can't connect perf to server" &
 
 
 sleep 1
@@ -174,9 +173,9 @@ do
 
   if [[ "$query" = "GET" ]]
   then
-    $wrk_path/wrk -t"$threads" -c"$connections" -d"$seconds"s $server_url >> $store_directory/$wrk_file || error_exit "can't start wrk"
+    wrk -t"$threads" -c"$connections" -d"$seconds"s http://127.0.0.1:8080/app/views/hello >> $store_directory/$wrk_file || error_exit "can't start wrk"
   else
-    $wrk_path/wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_path/scripts/post.lua" $server_url >> $store_directory/$wrk_file || error_exit "can't start wrk"
+    wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_path/../../scripts/wrk/json_large.lua" --timeout 5s http://127.0.0.1:8080/app/views/json >> $store_directory/$wrk_file || error_exit "can't start wrk"
   fi
 
   echo "error state: " $?
@@ -242,13 +241,13 @@ echo "End" >> $store_directory/$wrk_file.requests
 
 
 ## perf handler
-flame_result_name="flame.svg"
-flame_graph_path="$wrk_path/../FlameGraph" #"../../../utils/FlameGraph"
+#flame_result_name="flame.svg"
+#flame_graph_path="$wrk_path/../FlameGraph" #"../../../utils/FlameGraph"
 
-echo "perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name"
-pkill perf
-sleep 2 # wait for perf saves file
-perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name
+#echo "perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name"
+#pkill perf
+#sleep 2 # wait for perf saves file
+#perf script --input="$store_directory/$perf_out_file" | $flame_graph_path/stackcollapse-perf.pl | $flame_graph_path/flamegraph.pl > $store_directory/$flame_result_name
 
 echo "data ready for processing by data_handler.sh"
 

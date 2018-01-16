@@ -1,2 +1,2 @@
 threads | connections | seconds | GET/POST
-4       | 10          | 5       | GET
+2       |  64         | 30      | POST

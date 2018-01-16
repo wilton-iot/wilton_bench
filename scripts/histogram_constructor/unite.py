@@ -68,7 +68,7 @@ mutual.write(result_string)
 
 plot = open(wrk_cat + '/plot.plt', 'w')
 
-plot_config = "set term png size 1600, 900 \n\
+plot_config = "set term png size 640, 480 \n\
 set output \"%s.png\" \n\
 set boxwidth 0.9 absolute \n\
 set style fill   solid 1.00 border lt -1 \n\
