@@ -124,10 +124,19 @@ if [[ "$plotpattern" = "hist" ]]; then
   echo "plot \"$output_file.dat\" using 2:xtic(1) ti col" >> $work_dat_path/plot.pl
 else
   echo "plot \\" >> $work_dat_path/plot.pl
+  
+  lines_count=$( echo $lines | wc -w) # count words amount. Test name - 1 word
+  counter=1;
   echo "$lines" | while read line
   do
-    echo "\"$work_dat_path/$line\" using 1:2 with lines title '$line', \\" >> $work_dat_path/plot.pl
-  done  
+    suffix=", \\"
+    if [[ "$counter" = "$lines_count" ]]; then
+      suffix=""
+    fi
+    echo "\"$work_dat_path/$line\" using 1:2 with lines title '$line'$suffix" >> $work_dat_path/plot.pl
+    counter=$(( $counter + 1 ))
+  done
+
 fi
 
 

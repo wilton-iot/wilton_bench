@@ -43,7 +43,8 @@ $scr_cat/data_gather.sh $work_dat_path $store_directory/$top_file.pc.server $top
 $scr_cat/data_gather.sh $work_dat_path $store_directory/$top_file.pc.wrk $top_cpu_usage_pos $plots_path/wrk_cpu_usage.png -rm
 $scr_cat/data_gather.sh $work_dat_path $store_directory/$top_file.pc.wrk $top_mem_usage_pos $plots_path/wrk_mem_usage.png -rm
 
-$scr_cat/data_gather.sh $work_dat_path $store_directory/$vmrss_file $vmrss_pos $plots_path/vmrss_usage.png -rm
 
 $scr_cat/data_gather.sh $work_dat_path $store_directory/$wrk_file.latency $latency_pos $plots_path/latency.png -rm --hist
 $scr_cat/data_gather.sh $work_dat_path $store_directory/$wrk_file.requests $req_freq_pos $plots_path/requests.png -rm --hist
+
+$scr_cat/data_gather.sh $work_dat_path $store_directory/$vmrss_file $vmrss_pos $plots_path/vmrss_usage.png -rm
