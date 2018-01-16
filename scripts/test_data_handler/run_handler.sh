@@ -19,7 +19,7 @@ work_dat_path=$store_directory/work_dat
 mkdir -p $work_dat_path
 
 # Specify data columns positions
-cpu_load_pos=3
+cpu_load_pos=4
 free_mem_pos=4
 io_data_pos=5
 top_cpu_usage_pos=9
