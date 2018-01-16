@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-usage="Usage: $0 specifick_word\n \t use 'latency' or 'requests'"
+usage="Usage: $0 specifick_word path_to_tests_catalog [--clean]\n \t use 'latency' or 'requests' for specifick_word \n \t --clean - flag to clean all work data "
 
-if [[ "$1" = "" ]]; then
+if [[ "$1" = "" ]] || [[ "$2" = "" ]]; then
 	echo -e $usage
 	exit 0
 fi
@@ -33,7 +33,7 @@ plot_line="plot '$mutual_file' using 2:xtic(1) ti col"
 
 counter=1
 for i in $dat_files; do
-	### Generate command for gnuplot
+	######## Generate command for gnuplot
 	counter=$(( counter+1 ))
 	if [[ "$counter" != "2" ]]; then
 		plot_line=$( echo "$plot_line, '' u $counter ti col " )
@@ -56,15 +56,19 @@ for i in $dat_files; do
 	done
 done
 
-
-
 sort -u $tmp_file >> $tmp_file.pc
 sort -u $names_file >> $names_file.pc
 sort -u $file_names_file >> $file_names_file.pc
-
 
 echo $plot_line 
 
 python $sc_cat/unite.py $1 "$plot_line" $sc_cat
 
 gnuplot $sc_cat/plot.plt
+
+mv "$sc_cat/$1.png" "$2/"
+
+if [[ "$3" = "--clean" ]]; then
+  echo "clean"
+  $sc_cat/clean.sh
+fi
