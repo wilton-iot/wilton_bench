@@ -4,3 +4,9 @@
 [submodule "tools/FlameGraph"]
 	path = tools/FlameGraph
 	url = https://github.com/wilton-iot/FlameGraph.git
+[submodule "tools/nmon"]
+	path = tools/nmon
+	url = https://github.com/wilton-iot/nmon.git
+[submodule "tools/nmonvisualizer"]
+	path = tools/nmonvisualizer
+	url = https://github.com/wilton-iot/nmonvisualizer.git

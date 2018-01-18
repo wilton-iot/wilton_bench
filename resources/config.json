@@ -1,0 +1,46 @@
+{
+    "serverPort": 8080,
+
+    "nmon": {
+        "executable": "${CMAKE_CURRENT_BINARY_DIR}/nmon",
+        "args": [
+            "-s", "2",
+            "-c", "86400",
+            "-J",
+            "-t",
+            "-p"
+        ]
+    },
+
+    "wrk": {
+        "executable": "${CMAKE_CURRENT_BINARY_DIR}/wrk",
+        "args": [
+            "-t", "2",
+            "-c", "64",
+            "-d", "30s",
+            "--timeout", "1s",
+            "-s", "${CMAKE_CURRENT_LIST_DIR}/scripts/wrk/json_large.lua",
+            "http://127.0.0.1:8080/app/views/json"
+        ],
+        "argsWarmup": [
+            "-t", "1",
+            "-c", "16",
+            "-d", "5s",
+            "--timeout", "5s",
+            "-s", "${CMAKE_CURRENT_LIST_DIR}/scripts/wrk/json_large.lua",
+            "http://127.0.0.1:8080/app/views/json"
+        ]
+    },
+
+    "samples": [
+        {
+            "name": "wilton_c",
+            "enabled": true,
+            "executable": "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bench_wilton_c",
+            "args": [
+                "2"
+            ]
+        }
+    ]
+
+}

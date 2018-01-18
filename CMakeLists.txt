@@ -14,6 +14,22 @@
 
 cmake_minimum_required ( VERSION 2.8.12 )
 
+# nmon tool
+add_custom_command ( OUTPUT nmon
+        COMMAND make nmon_x86_ubuntu1604
+        COMMAND mv nmon_x86_ubuntu1604 ${CMAKE_CURRENT_BINARY_DIR}/nmon
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/tools/nmon
+        COMMENT "Compiling nmon tool ..." )
+add_custom_target( nmontool DEPENDS nmon )
+
+# nmonvisualizer tool
+add_custom_command ( OUTPUT nmonvis.jar
+        COMMAND bash ${WILTON_DIR}/tools/ant/bin/ant
+        COMMAND mv NMONVisualizer_*.jar ${CMAKE_CURRENT_BINARY_DIR}/nmonvis.jar
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/tools/nmonvisualizer
+        COMMENT "Compiling nmonvisualizer tool ..." )
+add_custom_target( nmonvis DEPENDS nmonvis.jar )
+
 # wrk tool
 # libluajit-5.1-dev is required to build wrk
 add_custom_command ( OUTPUT wrk
@@ -34,15 +50,19 @@ add_custom_target( golang DEPENDS golang_server )
 # c sample
 add_subdirectory ( samples/wilton_c )
 
-# run wilton_js from wilton/build dir:
-# ./bin/wilton_cli ../bench/samples/wilton_js/server.js -m ../js -s app
-
-# express module is required for node example:
-# npm install express --save
-# npm install body-parser --save
-# node ../bench/samples/node/server.js
+configure_file (
+    ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
+    ${CMAKE_CURRENT_BINARY_DIR}/config.json )
 
 add_custom_target ( bench
+        COMMAND ../wilton_${WILTON_VERSION}/bin/wilton
+                ${CMAKE_CURRENT_LIST_DIR}/scripts/bench.js --
+                ${CMAKE_CURRENT_BINARY_DIR}/config.json
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        DEPENDS dist nmontool nmonvis wrktool golang bench_wilton_c
+        COMMENT "Running benchmarks ..." )
+
+add_custom_target ( bench_scripting
         COMMAND rm -rf data
         COMMAND mkdir data
 

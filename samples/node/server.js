@@ -16,6 +16,9 @@
 
 "use strict";
 
+// npm install express --save
+// npm install body-parser --save
+
 const express = require("express")
 const bodyParser = require("body-parser")
 

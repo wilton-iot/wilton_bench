@@ -127,12 +127,14 @@ int main(int argc, char const *argv[]) {
     wilton_Server* server;
     err = wilton_Server_create(&server, server_conf, server_conf_len, paths, paths_size);
     check_err(err);
+    puts("Server started on port: [8080]");
 
     // signals
     err = wilton_signal_initialize();
     check_err(err);
     err = wilton_signal_await();
     check_err(err);
+    puts("Shutting down ...");
 
     err = wilton_Server_stop(server);
     check_err(err);
