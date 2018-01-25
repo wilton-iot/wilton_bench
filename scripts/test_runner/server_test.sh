@@ -47,7 +47,7 @@ echo "========================="
 server_name=$2
 store_directory=$4
 
-wrk_path=$5
+wrk_script=$5
 wrk_test_data_file=$6
 
 #rm -rf $store_directory
@@ -175,7 +175,7 @@ do
   then
     wrk -t"$threads" -c"$connections" -d"$seconds"s http://127.0.0.1:8080/app/views/hello >> $store_directory/$wrk_file || error_exit "can't start wrk"
   else
-    wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_path/../../scripts/wrk/json_large.lua" --timeout 5s http://127.0.0.1:8080/app/views/json >> $store_directory/$wrk_file || error_exit "can't start wrk"
+    wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_script" --timeout 5s http://127.0.0.1:8080/app/views/json >> $store_directory/$wrk_file || error_exit "can't start wrk"
   fi
 
   echo "error state: " $?

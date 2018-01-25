@@ -34,11 +34,45 @@
 
     "samples": [
         {
+            "name": "wilton_jsc",
+            "enabled": true,
+            "executable": "${CMAKE_BINARY_DIR}/wilton_${WILTON_VERSION}/bin/wilton",
+            "args": [
+                "${WILTON_DIR}/bench/samples/wilton_js/server.js",
+                "-s", "app"
+            ]
+        },
+        {
+            "name": "wilton_duktape",
+            "enabled": true,
+            "executable": "${CMAKE_BINARY_DIR}/wilton_${WILTON_VERSION}/bin/wilton",
+            "args": [
+                "${WILTON_DIR}/bench/samples/wilton_js/server.js",
+                "-s", "app",
+                "-j", "duktape"
+            ]
+        },
+        {
             "name": "wilton_c",
             "enabled": true,
             "executable": "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bench_wilton_c",
             "args": [
                 "2"
+            ]
+        },
+        {
+            "name": "node",
+            "enabled": true,
+            "executable": "$ENV{NODE_HOME}/bin/node",
+            "args": [
+                "${WILTON_DIR}/bench/samples/node/server.js"
+            ]
+        },
+        {
+            "name": "golang",
+            "enabled": true,
+            "executable": "${CMAKE_CURRENT_BINARY_DIR}/bench_golang",
+            "args": [
             ]
         }
     ]

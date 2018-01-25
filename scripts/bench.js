@@ -1,3 +1,18 @@
+/*
+ * Copyright 2018, alex at staticlibs.net
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 define([
     "module",
@@ -35,7 +50,7 @@ define([
         var output = sconf.name + "/server_stop_out.txt";
         var code = process.spawn({
             executable: "/bin/kill",
-            args: ["-9", String(pid)],
+            args: [String(pid)],
             outputFile: output,
             awaitExit: true
         });
@@ -90,8 +105,7 @@ define([
         logger.info("Nmon stopped");
     }
 
-    function runWrk(wconf, sampleName) {
-        // warmup
+    function runWrkWarmup(wconf, sampleName) {
         logger.info("Running wrk warmup, sample: [" + sampleName + "] ...");
         var outputWarm = sampleName + "/wrk_warmup_out.txt";
         var code = process.spawn({
@@ -104,7 +118,10 @@ define([
                 " sample: [" + sampleName + "]" +
                 " exit code: [" + code + "]" +
                 " output path: [" + outputWarm + "]");
-        // run
+        logger.info("Wrk warmup finishes");
+    }
+
+    function runWrk(wconf, sampleName) {
         logger.info("Running wrk, sample: [" + sampleName + "] ...");
         var output = sampleName + "/wrk_out.txt";
         var code = process.spawn({
@@ -117,7 +134,8 @@ define([
                 " sample: [" + sampleName + "]" +
                 " exit code: [" + code + "]" +
                 " output path: [" + output + "]");
-        logger.info("Wrk finishes");
+        var outText = fs.readFile(output);
+        logger.info("Wrk finishes:\n" + outText);
     }
 
     function runSample(conf, sa) {
@@ -129,6 +147,7 @@ define([
         var spid = 0;
         try {
             spid = startServer(sa, conf.serverPort);
+            runWrkWarmup(conf.wrk, sa.name);
             npid = startNmon(conf.nmon, sa.name);
             runWrk(conf.wrk, sa.name);
         } finally {
@@ -148,6 +167,7 @@ define([
                     runSample(conf, sa);
                 }
             });
+            logger.info("Benchmarks finished successfully");
         }
     };
 

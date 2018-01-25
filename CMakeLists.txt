@@ -18,7 +18,7 @@ cmake_minimum_required ( VERSION 2.8.12 )
 add_custom_command ( OUTPUT nmon
         COMMAND make nmon_x86_ubuntu1604
         COMMAND mv nmon_x86_ubuntu1604 ${CMAKE_CURRENT_BINARY_DIR}/nmon
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/tools/nmon
+        WORKING_DIRECTORY ${WILTON_DIR}/tools/bench/nmon
         COMMENT "Compiling nmon tool ..." )
 add_custom_target( nmontool DEPENDS nmon )
 
@@ -26,7 +26,7 @@ add_custom_target( nmontool DEPENDS nmon )
 add_custom_command ( OUTPUT nmonvis.jar
         COMMAND bash ${WILTON_DIR}/tools/ant/bin/ant
         COMMAND mv NMONVisualizer_*.jar ${CMAKE_CURRENT_BINARY_DIR}/nmonvis.jar
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/tools/nmonvisualizer
+        WORKING_DIRECTORY ${WILTON_DIR}/tools/bench/nmonvisualizer
         COMMENT "Compiling nmonvisualizer tool ..." )
 add_custom_target( nmonvis DEPENDS nmonvis.jar )
 
@@ -35,17 +35,17 @@ add_custom_target( nmonvis DEPENDS nmonvis.jar )
 add_custom_command ( OUTPUT wrk
         COMMAND make WITH_LUAJIT=/usr WITH_OPENSSL=/usr
         COMMAND mv wrk ${CMAKE_CURRENT_BINARY_DIR}/wrk
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/tools/wrk
+        WORKING_DIRECTORY ${WILTON_DIR}/tools/bench/wrk
         COMMENT "Compiling wrk tool ..." )
 add_custom_target( wrktool DEPENDS wrk )
 
 # go sample
-add_custom_command ( OUTPUT golang_server
+add_custom_command ( OUTPUT bench_golang
         COMMAND go build server.go
-        COMMAND mv server ${CMAKE_CURRENT_BINARY_DIR}/golang_server
+        COMMAND mv server ${CMAKE_CURRENT_BINARY_DIR}/bench_golang
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/samples/golang
         COMMENT "Compiling golang sample server ..." )
-add_custom_target( golang DEPENDS golang_server )
+add_custom_target( golang DEPENDS bench_golang )
 
 # c sample
 add_subdirectory ( samples/wilton_c )
@@ -54,6 +54,7 @@ configure_file (
     ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
     ${CMAKE_CURRENT_BINARY_DIR}/config.json )
 
+
 add_custom_target ( bench
         COMMAND ../wilton_${WILTON_VERSION}/bin/wilton
                 ${CMAKE_CURRENT_LIST_DIR}/scripts/bench.js --
@@ -61,6 +62,7 @@ add_custom_target ( bench
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS dist nmontool nmonvis wrktool golang bench_wilton_c
         COMMENT "Running benchmarks ..." )
+
 
 add_custom_target ( bench_scripting
         COMMAND rm -rf data
@@ -72,7 +74,7 @@ add_custom_target ( bench_scripting
                 wilton
                 "${WILTON_DIR}/bench/samples/wilton_js/server.js -s app"
                 data/wilton_js
-                ${WILTON_DIR}/bench/tools/wrk
+                ${WILTON_DIR}/bench/scripts/wrk/json_large.lua
                 ${WILTON_DIR}/bench/scripts/test_runner/wrk_test_params.txt
         COMMAND ${WILTON_DIR}/bench/scripts/test_data_handler/run_handler.sh
                 data/wilton_js
@@ -83,7 +85,7 @@ add_custom_target ( bench_scripting
                 bench_wilton_c
                 "2"
                 data/wilton_c
-                ${WILTON_DIR}/bench/tools/wrk
+                ${WILTON_DIR}/bench/scripts/wrk/json_large.lua
                 ${WILTON_DIR}/bench/scripts/test_runner/wrk_test_params.txt
         COMMAND ${WILTON_DIR}/bench/scripts/test_data_handler/run_handler.sh
                 data/wilton_c
@@ -94,7 +96,7 @@ add_custom_target ( bench_scripting
                 node
                 "${WILTON_DIR}/bench/samples/node/server.js"
                 data/node
-                ${WILTON_DIR}/bench/tools/wrk
+                ${WILTON_DIR}/bench/scripts/wrk/json_large.lua
                 ${WILTON_DIR}/bench/scripts/test_runner/wrk_test_params.txt
         COMMAND ${WILTON_DIR}/bench/scripts/test_data_handler/run_handler.sh
                 data/node
@@ -102,10 +104,10 @@ add_custom_target ( bench_scripting
         # golang
         COMMAND ${WILTON_DIR}/bench/scripts/test_runner/server_test.sh --
                 ${CMAKE_CURRENT_BINARY_DIR}
-                golang_server
+                bench_golang
                 "foo"
                 data/golang
-                ${WILTON_DIR}/bench/tools/wrk
+                ${WILTON_DIR}/bench/scripts/wrk/json_large.lua
                 ${WILTON_DIR}/bench/scripts/test_runner/wrk_test_params.txt
         COMMAND ${WILTON_DIR}/bench/scripts/test_data_handler/run_handler.sh
                 data/golang
