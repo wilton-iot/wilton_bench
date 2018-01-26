@@ -173,9 +173,9 @@ do
 
   if [[ "$query" = "GET" ]]
   then
-    wrk -t"$threads" -c"$connections" -d"$seconds"s http://127.0.0.1:8080/app/views/hello >> $store_directory/$wrk_file || error_exit "can't start wrk"
+    ./wrk -t"$threads" -c"$connections" -d"$seconds"s http://127.0.0.1:8080/app/views/hello >> $store_directory/$wrk_file || error_exit "can't start wrk"
   else
-    wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_script" --timeout 5s http://127.0.0.1:8080/app/views/json >> $store_directory/$wrk_file || error_exit "can't start wrk"
+    ./wrk -t"$threads" -c"$connections" -d"$seconds"s -s"$wrk_script" --timeout 5s http://127.0.0.1:8080/app/views/json >> $store_directory/$wrk_file || error_exit "can't start wrk"
   fi
 
   echo "error state: " $?

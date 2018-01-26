@@ -151,8 +151,10 @@ define([
             npid = startNmon(conf.nmon, sa.name);
             runWrk(conf.wrk, sa.name);
         } finally {
-            if (0 !== spid) {
+            if (0 !== npid) {
                 stopNmon(sa.name, npid);
+            }
+            if (0 !== spid) {
                 stopServer(sa, spid);
             }
         }
